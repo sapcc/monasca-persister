@@ -4,7 +4,7 @@
 
   <groupId>monasca-persister</groupId>
   <artifactId>monasca-persister-common</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <url>http://github.com/stackforge/monasca-persister</url>
   <packaging>pom</packaging>
 
