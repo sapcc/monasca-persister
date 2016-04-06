@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# Copyright (c) 2014 Hewlett-Packard Development Company, L.P.
+# (C) Copyright 2016 Hewlett Packard Enterprise Development Company LP
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,18 +12,14 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from oslo_config import cfg
 
-""" servicerunner runs the persister as an Openstack service.
+influxdb_opts = [cfg.StrOpt('database_name'),
+                 cfg.StrOpt('ip_address'),
+                 cfg.StrOpt('port'),
+                 cfg.StrOpt('user'),
+                 cfg.StrOpt('password')]
 
-"""
-import sys
-
-from persister import main_service
-
-
-def main():
-    main_service()
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+influxdb_group = cfg.OptGroup(name='influxdb', title='influxdb')
+cfg.CONF.register_group(influxdb_group)
+cfg.CONF.register_opts(influxdb_opts, influxdb_group)
