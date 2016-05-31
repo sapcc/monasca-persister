@@ -1,6 +1,7 @@
 oslo.config
 oslo.log
 oslo.service
+kafka-python
 
 six>=1.9.0
 babel
