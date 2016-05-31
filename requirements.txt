@@ -1,10 +1,7 @@
 oslo.config
 oslo.log
-oslo.service
 
 six>=1.9.0
-babel
 influxdb==2.8.0
-iso8601
 simport
 monasca-common
