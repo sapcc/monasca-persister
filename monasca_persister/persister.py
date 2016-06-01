@@ -31,7 +31,7 @@ import simport
 from oslo_config import cfg
 from oslo_log import log
 
-from repositories.persister import Persister
+from monasca_persister.repositories.persister import Persister
 
 LOG = log.getLogger(__name__)
 
