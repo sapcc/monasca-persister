@@ -1,7 +1,5 @@
 oslo.config
 oslo.log
-kafka-python>=0.9.5,<1.0
-kazoo
 
 six>=1.9.0
 influxdb==2.8.0
