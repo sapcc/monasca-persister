@@ -83,14 +83,15 @@ def parse_alarm_state_hist_message(message):
     if sub_alarms:
         sub_alarms_json = json.dumps(sub_alarms, ensure_ascii=False)
 
-        sub_alarms_json_snake_case = sub_alarms_json_snake_case.replace(
-                '"currentValues":',
-                '"current_values":')
-
         sub_alarms_json_snake_case = sub_alarms_json.replace(
                 '"subAlarmExpression":',
                 '"sub_alarm_expression":')
 
+        sub_alarms_json_snake_case = sub_alarms_json_snake_case.replace(
+                '"currentValues":',
+                '"current_values":')
+
+        # jobrs: I do not think that this shows up
         sub_alarms_json_snake_case = sub_alarms_json_snake_case.replace(
                 '"metricDefinition":',
                 '"metric_definition":')
