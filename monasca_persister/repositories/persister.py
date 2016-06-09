@@ -20,7 +20,8 @@ from oslo_log import log
 from monasca_common.kafka.consumer import KafkaConsumer
 
 LOG = log.getLogger(__name__)
-statsd_client = monascastatsd.Client('monasca.persister', dimensions={'service': 'monitoring', 'component': 'monasca-persister'})
+statsd_client = monascastatsd.Client('monasca.persister',
+                                     dimensions={'service': 'monitoring', 'component': 'monasca-persister'})
 statsd_timer = statsd_client.get_timer()
 
 
