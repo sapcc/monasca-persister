@@ -23,6 +23,7 @@ LOG = log.getLogger(__name__)
 statsd_client = monascastatsd.Client('monasca.persister',
                                      dimensions={'service': 'monitoring', 'component': 'monasca-persister'})
 statsd_timer = statsd_client.get_timer()
+statsd_flush_error_count = statsd_client.get_counter('flush.errors')
 
 
 class Persister(object):
@@ -47,9 +48,9 @@ class Persister(object):
 
         self.repository = repository()
 
-        self.statsd_flush_error_count = statsd_client.get_counter('flush.errors')
-        self.statsd_msg_count = statsd_client.get_counter('messages.processed')
-        self.statsd_msg_dropped_count = statsd_client.get_counter('messages.dropped')
+        self.statsd_msg_count = statsd_client.get_counter('messages.consumed', dimensions={'type': self._kafka_topic})
+        self.statsd_msg_dropped_count = statsd_client.get_counter('messages.dropped',
+                                                                  dimensions={'type': self._kafka_topic})
 
     @statsd_timer.timed("flush.time", sample_rate=0.01)
     def _flush(self):
@@ -65,7 +66,8 @@ class Persister(object):
             self._consumer.commit()
         except Exception:
             LOG.exception("Error writing to database: %s", self._data_points)
-            self.statsd_flush_error_count += 1
+            global statsd_flush_error_count
+            statsd_flush_error_count += 1
             raise
 
     def run(self):
