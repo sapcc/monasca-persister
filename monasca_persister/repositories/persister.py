@@ -19,14 +19,13 @@ from oslo_log import log
 
 from monasca_common.kafka.consumer import KafkaConsumer
 
-STATSD_PORT = int(os.getenv("STATSD_PORT", "8125"))
-STATSD_HOST = os.getenv("STATSD_HOST", "localhost")
+STATSD_PORT = int(os.getenv('STATSD_PORT', '8125'))
+STATSD_HOST = os.getenv('STATSD_HOST', 'localhost')
 LOG = log.getLogger(__name__)
 statsd_connection = monascastatsd.Connection(host=STATSD_HOST, port=STATSD_PORT, max_buffer_size=50)
 statsd_client = monascastatsd.Client('monasca.persister', connection=statsd_connection,
                                      dimensions={'service': 'monitoring', 'component': 'monasca-persister'})
 statsd_timer = statsd_client.get_timer()
-statsd_flush_error_count = statsd_client.get_counter('flush.errors')
 
 
 class Persister(object):
@@ -54,6 +53,7 @@ class Persister(object):
         self.statsd_msg_count = statsd_client.get_counter('messages.consumed', dimensions={'type': self._kafka_topic})
         self.statsd_msg_dropped_count = statsd_client.get_counter('messages.dropped',
                                                                   dimensions={'type': self._kafka_topic})
+        self.statsd_flush_error_count = statsd_client.get_counter('flush.errors')
 
     @statsd_timer.timed("flush.time", sample_rate=0.01)
     def _flush(self):
@@ -62,15 +62,16 @@ class Persister(object):
 
         try:
             self.repository.write_batch(self._data_points)
-
+            self.statsd_msg_count.increment(len(self._data_points), sample_rate=0.01)
             LOG.info("Processed %d messages from topic %s", len(self._data_points), self._kafka_topic)
 
             self._data_points = []
             self._consumer.commit()
+            self.statsd_msg_dropped_count.increment(0, sample_rate=0.01)  # make metric avail
+            self.statsd_flush_error_count.increment(0, sample_rate=0.01)  # make metric avail
         except Exception:
             LOG.exception("Error writing to database: %s", self._data_points)
-            global statsd_flush_error_count
-            statsd_flush_error_count += 1
+            self.statsd_flush_error_count.increment(1, sample_rate=1)
             raise
 
     def run(self):
@@ -81,11 +82,10 @@ class Persister(object):
                     message = raw_message[1]
                     data_point = self.repository.process_message(message)
                     self._data_points.append(data_point)
-                    self.statsd_msg_count += 1
                 except Exception:
                     LOG.exception('Error processing message. Message is '
                                   'being dropped. %s', message)
-                    self.statsd_msg_dropped_count += 1
+                    self.statsd_msg_dropped_count.increment(1, sample_rate=1)
 
                 if len(self._data_points) >= self._database_batch_size:
                     self._flush()
