@@ -19,8 +19,11 @@ from oslo_log import log
 
 from monasca_common.kafka.consumer import KafkaConsumer
 
+STATSD_PORT = int(os.getenv("STATSD_PORT", "8125"))
+STATSD_HOST = os.getenv("STATSD_HOST", "localhost")
 LOG = log.getLogger(__name__)
-statsd_client = monascastatsd.Client('monasca.persister',
+statsd_connection = monascastatsd.Connection(host=STATSD_HOST, port=STATSD_PORT, max_buffer_size=50)
+statsd_client = monascastatsd.Client('monasca.persister', connection=statsd_connection,
                                      dimensions={'service': 'monitoring', 'component': 'monasca-persister'})
 statsd_timer = statsd_client.get_timer()
 statsd_flush_error_count = statsd_client.get_counter('flush.errors')
