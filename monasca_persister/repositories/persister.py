@@ -56,7 +56,7 @@ class Persister(object):
                                                                   dimensions={'type': self._kafka_topic})
         self.statsd_flush_error_count = statsd_client.get_counter('persister.flush.errors')
         self.statsd_kafka_consumer_error_count = statsd_client.get_counter('kafka.consumer.errors',
-                                                                           dimensions={'topic': kafka_conf.topic})
+                                                                           dimensions={'topic': self._kafka_topic})
 
     @statsd_timer.timed("persister.flush.time", sample_rate=0.1)
     def _flush(self):
@@ -70,9 +70,9 @@ class Persister(object):
 
             self._data_points = []
             self._consumer.commit()
-            self.statsd_kafka_consumer_error_count.increment(0, sample_rate=0.01)  # make metric avail
-            self.statsd_msg_dropped_count.increment(0, sample_rate=0.01)  # make metric avail
-            self.statsd_flush_error_count.increment(0, sample_rate=0.01)  # make metric avail
+            self.statsd_kafka_consumer_error_count.increment(0, sample_rate=0.1)  # make metric avail
+            self.statsd_msg_dropped_count.increment(0, sample_rate=0.1)  # make metric avail
+            self.statsd_flush_error_count.increment(0, sample_rate=0.1)  # make metric avail
         except Exception:
             LOG.exception("Error writing to database: %s", self._data_points)
             self.statsd_flush_error_count.increment(1, sample_rate=1)
