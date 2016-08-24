@@ -74,7 +74,8 @@ class Persister(object):
             self.statsd_msg_dropped_count.increment(0, sample_rate=0.1)  # make metric avail
             self.statsd_flush_error_count.increment(0, sample_rate=0.1)  # make metric avail
         except Exception:
-            LOG.exception("Error writing to database: %s", self._data_points)
+            LOG.exception("Error writing to database")
+            LOG.debug("Data dump: %s", self._data_points)
             self.statsd_flush_error_count.increment(1, sample_rate=1)
             raise
 
