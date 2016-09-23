@@ -70,9 +70,9 @@ class Persister(object):
 
             self._data_points = []
             self._consumer.commit()
-            self.statsd_kafka_consumer_error_count.increment(0, sample_rate=1.0)  # make metric avail
-            self.statsd_msg_dropped_count.increment(0, sample_rate=1.0)  # make metric avail
-            self.statsd_flush_error_count.increment(0, sample_rate=1.0)  # make metric avail
+            self.statsd_kafka_consumer_error_count.increment(0, sample_rate=0.1)  # make metric avail
+            self.statsd_msg_dropped_count.increment(0, sample_rate=0.1)  # make metric avail
+            self.statsd_flush_error_count.increment(0, sample_rate=0.1)  # make metric avail
         except Exception:
             LOG.exception("Error writing to database")
             LOG.debug("Data dump: %s", self._data_points)
