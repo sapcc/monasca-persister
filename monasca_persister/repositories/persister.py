@@ -14,18 +14,16 @@
 # limitations under the License.
 import os
 
-import monascastatsd
+from monasca_common.kafka.consumer import KafkaConsumer
 from oslo_log import log
 
-from monasca_common.kafka.consumer import KafkaConsumer
+from monasca_persister.monitoring import client
+from monasca_persister.monitoring.metrics import KAFKA_CONSUMER_ERRORS, FLUSH_ERRORS, MESSAGES_DROPPED, \
+    MESSAGES_CONSUMED
 
-STATSD_PORT = int(os.getenv('STATSD_PORT', '8125'))
-STATSD_HOST = os.getenv('STATSD_HOST', 'localhost')
 LOG = log.getLogger(__name__)
-statsd_connection = monascastatsd.Connection(host=STATSD_HOST, port=STATSD_PORT, max_buffer_size=50)
-statsd_client = monascastatsd.Client('monasca', connection=statsd_connection,
-                                     dimensions={'service': 'monitoring', 'component': 'monasca-persister'})
-statsd_timer = statsd_client.get_timer()
+
+STATSD_CLIENT = client.get_client()
 
 
 class Persister(object):
@@ -50,15 +48,14 @@ class Persister(object):
 
         self.repository = repository()
 
-        self.statsd_msg_count = statsd_client.get_counter('persister.messages.consumed',
+        self.statsd_msg_count = STATSD_CLIENT.get_counter(MESSAGES_CONSUMED,
                                                           dimensions={'type': self._kafka_topic})
-        self.statsd_msg_dropped_count = statsd_client.get_counter('persister.messages.dropped',
+        self.statsd_msg_dropped_count = STATSD_CLIENT.get_counter(MESSAGES_DROPPED,
                                                                   dimensions={'type': self._kafka_topic})
-        self.statsd_flush_error_count = statsd_client.get_counter('persister.flush.errors')
-        self.statsd_kafka_consumer_error_count = statsd_client.get_counter('kafka.consumer.errors',
+        self.statsd_flush_error_count = STATSD_CLIENT.get_counter(FLUSH_ERRORS)
+        self.statsd_kafka_consumer_error_count = STATSD_CLIENT.get_counter(KAFKA_CONSUMER_ERRORS,
                                                                            dimensions={'topic': self._kafka_topic})
 
-    @statsd_timer.timed("persister.flush.time", sample_rate=0.1)
     def _flush(self):
         if not self._data_points:
             return

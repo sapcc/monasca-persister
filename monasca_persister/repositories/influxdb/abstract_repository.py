@@ -17,7 +17,12 @@ from influxdb import InfluxDBClient
 from oslo_config import cfg
 import six
 
+from monasca_persister.monitoring import client
+from monasca_persister.monitoring.metrics import INFLUXDB_INSERT_TIME
 from monasca_persister.repositories.abstract_repository import AbstractRepository
+
+STATSD_CLIENT = client.get_client()
+STATSD_TIMER = STATSD_CLIENT.get_timer()
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -32,5 +37,6 @@ class AbstractInfluxdbRepository(AbstractRepository):
                                                self.conf.influxdb.password,
                                                self.conf.influxdb.database_name)
 
+    @STATSD_TIMER.timed(INFLUXDB_INSERT_TIME, sample_rate=0.1)
     def write_batch(self, data_points):
         self._influxdb_client.write_points(data_points, 'ms')
