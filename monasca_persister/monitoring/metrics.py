@@ -12,7 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-FLUSH_ERRORS = 'persister.out_flush_errors'
+FLUSH_ERRORS = 'persister.flush_errors'
 """ errors occured when flushing a message (both on persister and TSDB side) """
 MESSAGES_DROPPED = 'persister.messages_rejected'
 """ number of invalid messages received and dropped """
