@@ -13,8 +13,13 @@
 # under the License.
 
 FLUSH_ERRORS = 'persister.out_flush_errors'
+""" errors occured when flushing a message (both on persister and TSDB side) """
 MESSAGES_DROPPED = 'persister.in_messages_rejected'
-MESSAGES_CONSUMED = 'persister.in_messages'
+""" number of invalid messages received and dropped """
+MESSAGES_CONSUMED = 'persister.messages_consumed'
+""" number of valid messages processed """
 
 INFLUXDB_INSERT_TIME = "influxdb.insert_time_ms"
+""" time for writing batches to InfluxDB (incl. communication) """
 KAFKA_CONSUMER_ERRORS = 'kafka.consumer_errors'
+""" errors occured when fetching messages from Kafka (incl. ZK) """
