@@ -14,7 +14,7 @@
 
 FLUSH_ERRORS = 'persister.out_flush_errors'
 """ errors occured when flushing a message (both on persister and TSDB side) """
-MESSAGES_DROPPED = 'persister.in_messages_rejected'
+MESSAGES_DROPPED = 'persister.messages_rejected'
 """ number of invalid messages received and dropped """
 MESSAGES_CONSUMED = 'persister.messages_consumed'
 """ number of valid messages processed """
