@@ -62,14 +62,14 @@ class Persister(object):
 
         try:
             self.repository.write_batch(self._data_points)
-            self.statsd_msg_count.increment(len(self._data_points), sample_rate=0.1)
+            self.statsd_msg_count.increment(len(self._data_points), sample_rate=0.01)
             LOG.info("Processed %d messages from topic %s", len(self._data_points), self._kafka_topic)
 
             self._data_points = []
             self._consumer.commit()
-            self.statsd_kafka_consumer_error_count.increment(0, sample_rate=0.1)  # make metric avail
-            self.statsd_msg_dropped_count.increment(0, sample_rate=0.1)  # make metric avail
-            self.statsd_flush_error_count.increment(0, sample_rate=0.1)  # make metric avail
+            self.statsd_kafka_consumer_error_count.increment(0, sample_rate=0.01)  # make metric avail
+            self.statsd_msg_dropped_count.increment(0, sample_rate=0.01)  # make metric avail
+            self.statsd_flush_error_count.increment(0, sample_rate=0.01)  # make metric avail
         except Exception:
             LOG.exception("Error writing to database")
             LOG.debug("Data dump: %s", self._data_points)

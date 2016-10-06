@@ -19,7 +19,7 @@ MESSAGES_DROPPED = 'persister.messages_rejected'
 MESSAGES_CONSUMED = 'persister.messages_consumed'
 """ number of valid messages processed """
 
-INFLUXDB_INSERT_TIME = "influxdb.insert_time_ms"
+INFLUXDB_INSERT_TIME = "influxdb.insert_time"
 """ time for writing batches to InfluxDB (incl. communication) """
 KAFKA_CONSUMER_ERRORS = 'kafka.consumer_errors'
 """ errors occured when fetching messages from Kafka (incl. ZK) """
