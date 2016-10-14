@@ -15,6 +15,7 @@
 import os
 
 from monasca_common.kafka.consumer import KafkaConsumer
+from monasca_common.repositories.exceptions import InvalidUpdateException
 from oslo_log import log
 
 from monasca_persister.monitoring import client
@@ -56,29 +57,41 @@ class Persister(object):
         self.statsd_kafka_consumer_error_count = STATSD_CLIENT.get_counter(KAFKA_CONSUMER_ERRORS,
                                                                            dimensions={'topic': self._kafka_topic})
 
+    def _write_batch(self, data_points):
+        try:
+            self.repository.write_batch(data_points)
+            self.statsd_msg_count.increment(len(data_points), sample_rate=0.01)
+            LOG.info("Processed %d messages from topic %s", len(data_points), self._kafka_topic)
+            self.statsd_msg_dropped_count.increment(0, sample_rate=0.01)  # make metric avail
+            self.statsd_flush_error_count.increment(0, sample_rate=0.01)  # make metric avail
+        except InvalidUpdateException:
+            l = len(data_points)
+            if l > 1:
+                piv = int(l / 2)
+                self._write_batch(data_points[0:piv])
+                if piv < l:
+                    self._write_batch(data_points[piv:])
+            else:
+                LOG.error("Error storing message. Message is being dropped: %s", data_points)
+                self.statsd_msg_dropped_count.increment(1, sample_rate=1.0)
+
     def _flush(self):
         if not self._data_points:
             return
 
         try:
-            self.repository.write_batch(self._data_points)
-            self.statsd_msg_count.increment(len(self._data_points), sample_rate=0.01)
-            LOG.info("Processed %d messages from topic %s", len(self._data_points), self._kafka_topic)
-
+            self._write_batch(self._data_points)
             self._data_points = []
             self._consumer.commit()
-            self.statsd_kafka_consumer_error_count.increment(0, sample_rate=0.01)  # make metric avail
-            self.statsd_msg_dropped_count.increment(0, sample_rate=0.01)  # make metric avail
-            self.statsd_flush_error_count.increment(0, sample_rate=0.01)  # make metric avail
         except Exception:
             LOG.exception("Error writing to database")
-            LOG.debug("Data dump: %s", self._data_points)
             self.statsd_flush_error_count.increment(1, sample_rate=1)
             raise
 
     def run(self):
         try:
             for raw_message in self._consumer:
+                self.statsd_kafka_consumer_error_count.increment(0, sample_rate=0.01)  # make metric avail
                 message = None
                 try:
                     message = raw_message[1]

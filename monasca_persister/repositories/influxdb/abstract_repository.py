@@ -13,7 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
+
+from influxdb.exceptions import InfluxDBClientError
+
 from influxdb import InfluxDBClient
+from monasca_common.repositories.exceptions import InvalidUpdateException
 from oslo_config import cfg
 import six
 
@@ -39,4 +43,10 @@ class AbstractInfluxdbRepository(AbstractRepository):
 
     @STATSD_TIMER.timed(INFLUXDB_INSERT_TIME, sample_rate=0.1)
     def write_batch(self, data_points):
-        self._influxdb_client.write_points(data_points, 'ms')
+        try:
+            self._influxdb_client.write_points(data_points, 'ms')
+        except InfluxDBClientError as e:
+            if int(e.code) == 400:
+                raise InvalidUpdateException("InfluxDB insert failed: {}".format(repr(e)))
+            else:
+                raise
