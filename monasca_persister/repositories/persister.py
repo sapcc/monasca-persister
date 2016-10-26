@@ -91,6 +91,7 @@ class Persister(object):
     def run(self):
         try:
             for raw_message in self._consumer:
+                self.statsd_kafka_consumer_error_count.increment(0, sample_rate=0.001)  # make metric avail
                 message = None
                 try:
                     message = raw_message[1]
