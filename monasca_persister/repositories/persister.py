@@ -60,10 +60,10 @@ class Persister(object):
     def _write_batch(self, data_points):
         try:
             self.repository.write_batch(data_points)
-            self.statsd_msg_count.increment(len(data_points), sample_rate=0.01)
+            self.statsd_msg_count.increment(len(data_points))
             LOG.info("Processed %d messages from topic %s", len(data_points), self._kafka_topic)
-            self.statsd_msg_dropped_count.increment(0, sample_rate=0.01)  # make metric avail
-            self.statsd_flush_error_count.increment(0, sample_rate=0.01)  # make metric avail
+            self.statsd_msg_dropped_count.increment(0)  # make metric avail
+            self.statsd_flush_error_count.increment(0)  # make metric avail
         except InvalidUpdateException:
             l = len(data_points)
             if l > 1:
@@ -91,7 +91,6 @@ class Persister(object):
     def run(self):
         try:
             for raw_message in self._consumer:
-                self.statsd_kafka_consumer_error_count.increment(0, sample_rate=0.01)  # make metric avail
                 message = None
                 try:
                     message = raw_message[1]
