@@ -14,10 +14,10 @@
 # limitations under the License.
 import os
 
-from monasca_common.kafka.consumer import KafkaConsumer
 from monasca_common.repositories.exceptions import InvalidUpdateException
 from oslo_log import log
 
+from monasca_common.kafka import consumer
 from monasca_persister.monitoring import client
 from monasca_persister.monitoring.metrics import KAFKA_CONSUMER_ERRORS, FLUSH_ERRORS, MESSAGES_DROPPED, \
     MESSAGES_CONSUMED
@@ -37,7 +37,7 @@ class Persister(object):
 
         self._database_batch_size = kafka_conf.database_batch_size
 
-        self._consumer = KafkaConsumer(
+        self._consumer = consumer.KafkaConsumer(
                 kafka_conf.uri,
                 zookeeper_conf.uri,
                 kafka_conf.zookeeper_path,
@@ -62,8 +62,6 @@ class Persister(object):
             self.repository.write_batch(data_points)
             self.statsd_msg_count.increment(len(data_points))
             LOG.info("Processed %d messages from topic %s", len(data_points), self._kafka_topic)
-            self.statsd_msg_dropped_count.increment(0)  # make metric avail
-            self.statsd_flush_error_count.increment(0)  # make metric avail
         except InvalidUpdateException:
             l = len(data_points)
             if l > 1:
